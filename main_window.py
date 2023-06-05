@@ -1,8 +1,9 @@
 import re
-
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (QApplication, QLabel, QMainWindow, QPushButton, QFileDialog)
+import sys
+from task import Coding as co
 
 
 class Window(QMainWindow):
@@ -13,9 +14,6 @@ class Window(QMainWindow):
         super(Window, self).__init__()
         self.setWindowTitle('3DES')
         self.setFixedSize(600, 400)
-        self.background = QLabel(self)
-        self.background.setGeometry(0, 0, 600, 400)
-        self.background.setPixmap(QPixmap("window.jpg").scaled(600, 400))
         self.info = QLabel(self)
         self.info.setText("Выберите размер ключа")
         self.info.setGeometry(225, 20, 500, 50)
@@ -53,3 +51,44 @@ class Window(QMainWindow):
         """
         self.button_d.show()
         self.button_e.show()
+
+    def generation_key(self) -> None:
+        """
+        Функция генерации ключей
+        """
+        way = str(QFileDialog.getExistingDirectory(caption='Выбор директории'))
+        self.key = co(self.size, way)
+        self.key.generation_key()
+        self.info.setText("Ключи сгенерированы")
+        self.message.setText("Зашифруйте текст")
+        self.hidden()
+
+    def encryption(self) -> None:
+        """
+        Функция шифрования
+        """
+        way_e = str(QFileDialog.getOpenFileName(caption='Выберите файл для шифрования', filter='*.txt'))
+        way_e = way_e.split('\'')[1]
+        self.key.encryption(way_e)
+        self.info.setText("Текст зашифрован")
+        self.message.setText("Расшифруйте текст")
+
+    def decryption(self) -> None:
+        """
+        Функция дешифорвания
+        """
+        way = self.key.decryption()
+        self.info.setText("Текст расшифрован")
+        self.message.setGeometry(120, 250, 600, 30)
+        self.message.setText(way)
+
+
+def program() -> None:
+    app = QApplication(sys.argv)
+    window = Window()
+    window.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    program()
