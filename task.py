@@ -4,6 +4,8 @@ import os
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from cryptography.hazmat.primitives import padding as sym_padding
+from cryptography.hazmat.primitives.ciphers import (Cipher, algorithms, modes)
 
 
 logger = logging.getLogger()
@@ -88,3 +90,37 @@ class Coding:
             logging.warning(
                 f"{err} ошибка чтения файла {self.settings['symmetric_key']}")
         return symmetric_key
+
+    def encryption(self, way: str) -> None:
+        """
+        Функция шифровки текста заданным алгоритмом 3DES
+        """
+        way_e = way
+        symmetric_key = self.__sym_key()
+        try:
+            with open(way_e, 'r', encoding='utf-8') as f:
+                text = f.read()
+        except OSError as err:
+            logging.warning(f"{err} ошибка чтения файла {way_e}")
+        else:
+            logging.info("Текст прочитан")
+        padder = sym_padding.ANSIX923(128).padder()
+        padded_text = padder.update(bytes(text, 'utf-8')) + padder.finalize()
+        iv = os.urandom(8)
+        cipher = Cipher(algorithms.TripleDES(symmetric_key), modes.CBC(iv))
+        encryptor = cipher.encryptor()
+        c_text = encryptor.update(padded_text) + encryptor.finalize()
+        try:
+            with open(self.settings['iv_path'], 'wb') as key_file:
+                key_file.write(iv)
+        except OSError as err:
+            logging.warning(
+                f"{err} ошибка записи {self.settings['iv_path']}")
+        try:
+            with open(self.settings['encrypted_file'], 'wb') as f_text:
+                f_text.write(c_text)
+        except OSError as err:
+            logging.warning(
+                f"{err} ошибка записи {self.settings['encrypted_file']}")
+        else:
+            logging.info("Тескт зашифрован")
