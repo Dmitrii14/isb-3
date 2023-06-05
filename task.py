@@ -124,3 +124,35 @@ class Coding:
                 f"{err} ошибка записи {self.settings['encrypted_file']}")
         else:
             logging.info("Тескт зашифрован")
+
+    def decryption(self) -> str:
+        """
+        Функция расшифровки текста заданным алгоритмом 3DES
+        """
+        symmetric_key = self.__sym_key()
+        try:
+            with open(self.settings['encrypted_file'], 'rb') as f:
+                en_text = f.read()
+        except OSError as err:
+            logging.warning(
+                f"{err} ошибка чтения файла {self.settings['encrypted_file']}")
+        try:
+            with open(self.settings['iv_path'], "rb") as f:
+                iv = f.read()
+        except OSError as err:
+            logging.warning(
+                f"{err} ошибка чтения файла {self.settings['iv_path']}")
+        cipher = Cipher(algorithms.TripleDES(symmetric_key), modes.CBC(iv))
+        decryptor = cipher.decryptor()
+        dc_text = decryptor.update(en_text) + decryptor.finalize()
+        unpadder = sym_padding.ANSIX923(128).unpadder()
+        unpadded_dc_text = unpadder.update(dc_text) + unpadder.finalize()
+        try:
+            with open(self.settings['decrypted_file'], 'wb') as f:
+                f.write(unpadded_dc_text)
+        except OSError as err:
+            logging.warning(
+                f"{err} ошибка при записи в файл {self.settings['decrypted_file']}")
+        else:
+            logging.info("Текст расшифрован")
+        return self.settings['decrypted_file']
