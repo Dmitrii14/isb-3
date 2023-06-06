@@ -30,18 +30,16 @@ class SymmetricClass:
                 f.write(key)
         except OSError as err:
             logging.warning(f"{err} ошибка записи ключа в файл {self.settings['symmetric_key']}")
-            raise
 
     def get_symmetric_key(self, path: str) -> bytes:
         """
-        Получение симметричного ключа
+        Функция загрузки ключей в файл
         """
         try:
             with open(path, 'rb') as f:
                 key = f.read()
         except OSError as err:
             logging.warning(f"{err} ошибка чтения файла {self.settings['symmetric_key']}")
-            raise
         return key
 
     def symmetric_encryption(self, key: bytes, path_message: str,
